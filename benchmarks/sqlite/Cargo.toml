@@ -1,0 +1,21 @@
+[package]
+name = "benchmarks-sqlite"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+common = { path = "../../common" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+axum = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+rand = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+rusqlite = { version = "0.30.0", features = ["bundled", "chrono", "uuid"] }
+tokio-rusqlite = "0.5.0" 

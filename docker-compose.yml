@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16.2-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: benchmark
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    command: postgres -c wal_level=logical -c max_wal_senders=10 -c max_connections=100
+
+  surrealdb:
+    image: surrealdb/surrealdb:v1.0.0
+    ports:
+      - "8000:8000"
+    command: start --user root --pass root file:/data/benchmark.db
+    volumes:
+      - surrealdb-data:/data
+
+  kuzu:
+    image: kuzudb/kuzu:latest
+    ports:
+      - "8001:8001"
+    volumes:
+      - kuzu-data:/data
+    command: serve --http-port 8001 --db-path /data
+    
+  # The following are embedded databases but we'll still create services
+  # to run their benchmarks in a containerized environment
+  sqlite-benchmark:
+    build:
+      context: .
+      dockerfile: ./benchmarks/sqlite/Dockerfile
+    ports:
+      - "3001:3001"
+    volumes:
+      - sqlite-data:/app/data
+    depends_on:
+      - postgres
+      - surrealdb
+      - kuzu
+
+  duckdb-benchmark:
+    build:
+      context: .
+      dockerfile: ./benchmarks/duckdb/Dockerfile
+    ports:
+      - "3002:3002"
+    volumes:
+      - duckdb-data:/app/data
+    depends_on:
+      - postgres
+      - surrealdb
+      - kuzu
+
+  rocksdb-benchmark:
+    build:
+      context: .
+      dockerfile: ./benchmarks/rocksdb/Dockerfile
+    ports:
+      - "3003:3003"
+    volumes:
+      - rocksdb-data:/app/data
+    depends_on:
+      - postgres
+      - surrealdb
+      - kuzu
+
+volumes:
+  postgres-data:
+  surrealdb-data:
+  kuzu-data:
+  sqlite-data:
+  duckdb-data:
+  rocksdb-data: 
